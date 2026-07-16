@@ -1,29 +1,30 @@
 const express = require("express");
-
 const app = express();
-//it will just handle get calls of user
-app.get('/user/:userIdb', (req, res) => {
-  console.log(req.params)
-  res.send("Hello hello from the server! rohan (get)");
+const { connectDb } = require("./config/database.js");
+const User = require("./models/user.js");
+
+app.post("/signUp", async (req, res) => {
+  let user = new User({
+    firstName: "rohan",
+    lastName: "kharat",
+    emailId: "kharatrohan555@gamil.com",
+    password: 1234,
+  });
+  try {
+    await user.save();
+    res.send("User Added Successfully !");
+  } catch (err) {
+    res.status(500).send("error");
+  }
 });
 
-app.listen(1000, () => {
-  console.log("rohan is watching");
-});
+// connection mongodb
 
-/*
-
-it will check routing from top to bottom
-
-
- /.ab?c/ :  this ? Because the letter b is optional, this single route will match two different URLs:
-
- /.ab+c/  : The + means the b can repeat. Matches /abc, /abbc, /abbbc.
-
-The * is a wildcard. Matches /abcd, /abRANDOMcd, /ab123cd.
-
-"/ab(cd)?e", ...) thsi is old way to use this in '' now you use regex
-
-The () groups characters. The cd block is optional. Matches /abe and /abcde.
-
-*/
+connectDb()
+  .then(() => {
+    console.log("connection established ...");
+    app.listen(1000, () => {
+      console.log("rohan is watching... ");
+    });
+  })
+  .catch(() => console.log("Error ocurred "));
