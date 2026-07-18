@@ -16,6 +16,30 @@ app.post("/signUp", async (req, res) => {
   }
 });
 
+//Get user by Email
+
+app.post("/find", async (req, res) => {
+  try {
+    let game = await User.find({ emailId: req.body.emailId });
+    res.send(game);
+  } catch (err) {
+    res.status(400).send("something went wrong");
+  }
+});
+
+// Feed Api - Get/feed - get all the user from dataabase
+app.get("/feed", async (req, res) => {
+  try {
+    let game = await User.find({});
+    res.send(game);
+  } catch (err) {
+    res.status(400).send("something went wrong");
+  }
+});
+
+
+
+
 // connection mongodb
 
 connectDb()
