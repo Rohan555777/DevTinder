@@ -6,7 +6,6 @@ const User = require("./models/user.js");
 app.use(express.json());
 
 app.post("/signUp", async (req, res) => {
-  console.log(req.body);
   let user = new User(req.body);
   try {
     await user.save();
@@ -37,8 +36,17 @@ app.get("/feed", async (req, res) => {
   }
 });
 
+//DELETE API
 
-
+app.delete("/user", async (req, res) => {
+  try {
+    userId = req.body.userId;
+    await User.findByIdAndDelete(userId);
+    res.send("user Deleted successfully !");
+  } catch (err) {
+    res.status(400).send("something went wrong");
+  }
+});
 
 // connection mongodb
 
