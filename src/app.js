@@ -12,13 +12,13 @@ app.post("/signUp", async (req, res) => {
     await user.save();
     res.send("User created successfully");
   } catch (err) {
-    res.status(500).send("Error Ocuurred");
+    res.status(500).send("Error Ocuurred :" + err.message);
   }
 });
 
 //Get user by Email
 
-app.post("/find", async (req, res) => {
+app.get("/find", async (req, res) => {
   try {
     let game = await User.find({ emailId: req.body.emailId });
     res.send(game);
@@ -53,12 +53,19 @@ app.delete("/user", async (req, res) => {
 
 app.patch("/user", async (req, res) => {
   try {
+    //validating
+    let validKey = ["firstName", "lastName", "gender", "age"];
+    let isValid = Object.keys(req.body).every((ch) => validKey.includes(ch));
+    if (!isValid) {
+      throw new Error("use Valid keys");
+    }
+    //handle update
     let quary = { firstName: req.body.firstName };
     let data = req.body;
-    let check = await User.findOneAndUpdate(quary, data, { returnDocument: "after" });
+    let check = await User.findOneAndUpdate(quary, data, { returnDocument: "before", runValidators: true });
     res.send("User updated successfully !");
   } catch (err) {
-    res.status(400).send("something went wrong");
+    res.status(400).send("something went wrong " + err.message);
   }
 });
 
@@ -71,4 +78,4 @@ connectDb()
       console.log("rohan is watching... ");
     });
   })
-  .catch(() => console.log("Error ocurred "));
+  .catch((err) => console.log("Error ocurred " + err.message));
