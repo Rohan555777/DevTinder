@@ -5,8 +5,12 @@ const User = require("./models/user.js");
 const { default: mongoose } = require("mongoose");
 const { validation } = require("./utils/validation.js");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const JWT = require("jsonwebtoken");
+const { userAuth } = require("./middleweres/auth.js");
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signUp", async (req, res) => {
   try {
@@ -30,76 +34,47 @@ app.post("/signUp", async (req, res) => {
     res.status(500).send("Error Ocuurred :" + err.message);
   }
 });
-
 //Post Login API
 app.post("/login", async (req, res) => {
   try {
+    //password and user validation
     const { emailId, password } = req.body;
     let user = await User.findOne({ emailId: emailId });
     if (!user) {
       return res.status(401).send("invalid credential!");
     }
 
-    let validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(401).send("invalid credential");
-    } else {
+    let validPassword = await user.passValid(password);
+    if (validPassword) {
+      //create Token
+      let token = await user.getJWT();
+      // add the tokan to cookie and send the respond back to the User
+      res.cookie("token", token);
       res.send("Login Successfully!");
+    } else {
+      return res.status(401).send("invalid credential");
     }
   } catch (err) {
     res.status(400).send(err.message);
   }
 });
-//Get user by Email
-
-app.get("/find", async (req, res) => {
+//Profile
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    let game = await User.find({ emailId: req.body.emailId });
-    res.send(game);
+    user = req.user;
+    res.send(user);
   } catch (err) {
-    res.status(400).send("something went wrong");
+    res.status(400).send("err : " + err.message);
   }
 });
 
-// Feed Api - Get/feed - get all the user from dataabase
-app.get("/feed", async (req, res) => {
+//Send connection request
+app.post("/sendReq", userAuth, (req, res) => {
   try {
-    let game = await User.find({});
-    res.send(game);
+    let user = req.user;
+    res.send(user.firstName + " sent a connection request");
   } catch (err) {
-    res.status(400).send("something went wrong");
-  }
-});
-
-//DELETE API
-
-app.delete("/user", async (req, res) => {
-  try {
-    userId = req.body.userId;
-    await User.findByIdAndDelete(userId);
-    res.send("user Deleted successfully !");
-  } catch (err) {
-    res.status(400).send("something went wrong");
-  }
-});
-
-// Update API
-
-app.patch("/user", async (req, res) => {
-  try {
-    //validating
-    let ALLOWED_KEYS = ["firstName", "lastName", "gender", "age"];
-    let isValid = Object.keys(req.body).every((ch) => ALLOWED_KEYS.includes(ch));
-    if (!isValid) {
-      throw new Error("use Valid keys");
-    }
-    //handle update
-    let quary = { firstName: req.body.firstName };
-    let data = req.body;
-    let check = await User.findOneAndUpdate(quary, data, { returnDocument: "before", runValidators: true });
-    res.send("User updated successfully !");
-  } catch (err) {
-    res.status(400).send("something went wrong " + err.message);
+    res.status(501).send("Err : " + err.message);
   }
 });
 
