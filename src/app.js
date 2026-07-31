@@ -10,12 +10,14 @@ const JWT = require("jsonwebtoken");
 const { userAuth } = require("./middleweres/auth.js");
 const AuthRouter = require("./Router/Auth.js");
 const ProfileRouter = require("./Router/Profile.js");
+const RequestRouter = require("./Router/Request.js");
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(AuthRouter);
 app.use(ProfileRouter);
+app.use(RequestRouter);
 
 //Send connection request
 app.post("/sendReq", userAuth, (req, res) => {
